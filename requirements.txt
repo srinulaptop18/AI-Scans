@@ -1,0 +1,27 @@
+# ════════════════════════════════════════════════════════════════════
+# NEUROSCAN AI - Complete Requirements (Multi-Disease System)
+# Parkinson's Disease, Brain Tumor, Alzheimer's Disease
+# BVC College of Engineering, Palacharla
+# ════════════════════════════════════════════════════════════════════
+
+# Core Framework
+streamlit==1.31.0
+
+# Deep Learning - PyTorch (for Parkinson's)
+torch==2.1.0
+torchvision==0.16.0
+timm==0.9.12
+
+# Deep Learning - TensorFlow/Keras (for Brain Tumor & Alzheimer's)
+tensorflow==2.15.0
+
+# Image Processing
+Pillow==10.2.0
+
+# Data Handling
+numpy==1.24.3
+pandas==2.0.3
+pyarrow==14.0.1
+
+# PDF Generation
+reportlab==4.0.9
