@@ -1,19 +1,15 @@
-# ════════════════════════════════════════════════════════════════════
-# NEUROSCAN AI - Complete Requirements (Multi-Disease System)
-# Parkinson's Disease, Brain Tumor, Alzheimer's Disease
-# BVC College of Engineering, Palacharla
-# ════════════════════════════════════════════════════════════════════
+# NEUROSCAN AI - Stable Cloud Requirements
 
 # Core Framework
 streamlit==1.31.0
 
-# Deep Learning - PyTorch
+# PyTorch (Parkinson's model)
 torch>=2.5.0
 torchvision>=0.20.0
 timm==0.9.12
 
-# Deep Learning - TensorFlow
-tensorflow>=2.17.0
+# TensorFlow (Brain Tumor & Alzheimer's)
+tensorflow==2.16.1
 
 # Image Processing
 Pillow>=10.2.0
