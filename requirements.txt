@@ -1,23 +1,14 @@
-# NEUROSCAN AI - Stable Cloud Requirements
+# ════════════════════════════════════════════════════════════════════
+# NEUROSCAN AI - Streamlit Cloud Requirements
+# Parkinson's Disease MRI Analysis - ResNet-ViT Model
+# BVC College of Engineering, Palacharla
+# ════════════════════════════════════════════════════════════════════
 
-# Core Framework
 streamlit==1.31.0
-
-# PyTorch (Parkinson's model)
-torch>=2.5.0
-torchvision>=0.20.0
+torch==2.1.0
+torchvision==0.16.0
 timm==0.9.12
-
-# TensorFlow (Brain Tumor & Alzheimer's)
-tensorflow==2.16.1
-
-# Image Processing
-Pillow>=10.2.0
-
-# Data Handling
-numpy>=1.26.0
-pandas>=2.2.0
-pyarrow>=15.0.0
-
-# PDF Generation
-reportlab>=4.0.9
+Pillow==10.2.0
+numpy==1.24.3
+reportlab==4.0.9
+gdown==5.1.0
