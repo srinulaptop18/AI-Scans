@@ -15,6 +15,28 @@ import torchvision.transforms as transforms
 import timm
 import base64
 import os
+import gdown
+
+# ── MODEL DOWNLOAD FROM GOOGLE DRIVE ─────────────────────────────────────────
+# Replace the value below with your actual Google Drive file ID
+# How to get it: Share your new.pth on Google Drive (Anyone with link)
+# The link looks like: https://drive.google.com/file/d/FILE_ID_HERE/view
+# Copy only the FILE_ID_HERE part and paste below
+GDRIVE_FILE_ID = "1f4FY7kFTIZHKgz5w7GjQFegz85ohg7LU"
+MODEL_PATH = "new.pth"
+
+def download_model():
+    """Download model from Google Drive if not already present."""
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("⬇️ Downloading AI model (first time only, please wait)..."):
+            try:
+                url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
+                gdown.download(url, MODEL_PATH, quiet=False)
+                st.success("✅ Model downloaded successfully!")
+            except Exception as e:
+                st.error(f"❌ Failed to download model: {str(e)}")
+                st.info("💡 Make sure your Google Drive file is shared as 'Anyone with the link'")
+                st.stop()
 
 # Page configuration
 st.set_page_config(
@@ -41,37 +63,6 @@ class ResNetViT(nn.Module):
         feats = feats.unsqueeze(1)
         feats = self.transformer(feats)
         return self.head(feats[:, 0])
-
-# Define the EfficientNet-MobileNet model architecture (Old)
-class EfficientNetMobileNet(nn.Module):
-    def __init__(self, num_classes):
-        super().__init__()
-        self.efficientnet = timm.create_model('efficientnet_b0', pretrained=True, num_classes=0)
-        efficientnet_features = self.efficientnet.num_features
-        self.mobilenet = timm.create_model('mobilenetv3_large_100', pretrained=True, num_classes=0)
-        mobilenet_features = self.mobilenet.num_features
-        combined_features = efficientnet_features + mobilenet_features
-        self.classifier = nn.Sequential(
-            nn.Linear(combined_features, 512),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(512, num_classes)
-        )
-    
-    def forward(self, x):
-        eff_features = self.efficientnet(x)
-        mob_features = self.mobilenet(x)
-        combined = torch.cat([eff_features, mob_features], dim=1)
-        return self.classifier(combined)
-
-# Define EfficientNetV2Small model
-class EfficientNetV2Small(nn.Module):
-    def __init__(self, num_classes):
-        super().__init__()
-        self.model = timm.create_model('tf_efficientnetv2_s', pretrained=True, num_classes=num_classes)
-    
-    def forward(self, x):
-        return self.model(x)
 
 # Helper function to load and encode logo image as base64
 def get_logo_base64(logo_path):
@@ -729,6 +720,9 @@ header_html = (
 )
 st.markdown(header_html, unsafe_allow_html=True)
 
+# ── AUTO-DOWNLOAD MODEL ON STARTUP ───────────────────────────────────────────
+download_model()
+
 # Initialize session state
 if 'prediction_made' not in st.session_state:
     st.session_state.prediction_made = False
@@ -832,71 +826,17 @@ with tab_scan:
                     }
                     try:
                         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                        model = None
-                        model_loaded = False
-                        model_type = None
-                        loaded_file = None
-                        
-                        for filename in ["new.pth", "old.pth", "parkinsons_resnet_vit_latest.pth"]:
-                            try:
-                                checkpoint = torch.load(filename, map_location=device)
-                                keys = list(checkpoint.keys())
-                                
-                                if any('blocks' in k for k in keys) and any('conv_stem' in k for k in keys):
-                                    st.info(f"📂 Loading **EfficientNet-V2 Small** from `{filename}`")
-                                    model = EfficientNetV2Small(num_classes=2)
-                                    model.load_state_dict(checkpoint)
-                                    model_type = "EfficientNet-V2 Small"
-                                    loaded_file = filename
-                                    model_loaded = True
-                                    break
-                                elif any("efficientnet" in k for k in keys) or any("mobilenet" in k for k in keys):
-                                    st.info(f"📂 Loading EfficientNet-MobileNet from **{filename}**")
-                                    model = EfficientNetMobileNet(num_classes=2)
-                                    model.load_state_dict(checkpoint)
-                                    model_type = "EfficientNet-MobileNet"
-                                    loaded_file = filename
-                                    model_loaded = True
-                                    break
-                                elif any("backbone" in k for k in keys) and any("transformer" in k for k in keys):
-                                    st.info(f"📂 Loading ResNet-ViT from **{filename}**")
-                                    model = ResNetViT(num_classes=2)
-                                    model.load_state_dict(checkpoint)
-                                    model_type = "ResNet-ViT"
-                                    loaded_file = filename
-                                    model_loaded = True
-                                    break
-                                else:
-                                    for ModelClass, mtype in [
-                                        (EfficientNetV2Small, "EfficientNet-V2 Small"),
-                                        (EfficientNetMobileNet, "EfficientNet-MobileNet"),
-                                        (ResNetViT, "ResNet-ViT"),
-                                    ]:
-                                        try:
-                                            model = ModelClass(num_classes=2)
-                                            model.load_state_dict(checkpoint)
-                                            model_type = mtype
-                                            loaded_file = filename
-                                            model_loaded = True
-                                            break
-                                        except:
-                                            pass
-                                    if model_loaded:
-                                        break
-                            except FileNotFoundError:
-                                continue
-                            except Exception as e:
-                                st.warning(f"⚠️ Could not load {filename}: {str(e)[:100]}")
-                                continue
 
-                        if not model_loaded:
-                            st.error("❌ Model file not found!")
-                            st.info("💡 Please add **new.pth** file to this folder")
+                        if not os.path.exists(MODEL_PATH):
+                            st.error("❌ Model file not found! Please check your Google Drive link.")
                             st.stop()
 
-                        st.success(f"✅ Loaded **{model_type}** from `{loaded_file}`")
+                        checkpoint = torch.load(MODEL_PATH, map_location=device)
+                        model = ResNetViT(num_classes=2)
+                        model.load_state_dict(checkpoint)
                         model.to(device)
                         model.eval()
+                        st.success("✅ Loaded **ResNet-ViT** model successfully!")
 
                         transform = transforms.Compose([
                             transforms.Resize((224, 224)),
