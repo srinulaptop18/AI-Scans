@@ -22,7 +22,7 @@ import matplotlib.cm as cm
 import pandas as pd
 
 # ── GOOGLE DRIVE CONFIG ───────────────────────────────────────────────────────
-GDRIVE_FILE_ID = "10aU1zRciaAzlYyhv-dkrXZmzJLJnom65"
+GDRIVE_FILE_ID = "1EGsFZQMs2LCvRW637WQo0p0I0Qz6r_kC"
 MODEL_PATH = "new_vit.pth"
 
 def download_model():
