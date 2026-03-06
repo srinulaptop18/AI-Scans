@@ -101,14 +101,26 @@ class ResNetViT(nn.Module):
 # ── GRAD-CAM ──────────────────────────────────────────────────────────────────
 class GradCAM:
     def __init__(self, model):
-        self.model      = model
-        self.gradients  = None
+        self.model       = model
+        self.gradients   = None
         self.activations = None
-        self._hooks     = []
-        # hook on the last conv layer of ResNet backbone (layer4[-1])
-        target_layer = model.backbone.features[-1]
-        self._hooks.append(target_layer.register_forward_hook(self._save_activation))
-        self._hooks.append(target_layer.register_backward_hook(self._save_gradient))
+        self._hooks      = []
+
+        # Target layer4 inside the ResNetBackbone Sequential
+        # features[-1] is layer4 (the last block before avgpool/fc)
+        # We hook the last Bottleneck block inside layer4
+        target_layer = None
+        for name, module in model.backbone.features.named_children():
+            target_layer = module   # keeps updating → ends at layer4
+        # target_layer is now layer4; hook its last Bottleneck
+        last_bottleneck = list(target_layer.children())[-1]
+
+        self._hooks.append(
+            last_bottleneck.register_forward_hook(self._save_activation)
+        )
+        self._hooks.append(
+            last_bottleneck.register_full_backward_hook(self._save_gradient)
+        )
 
     def _save_activation(self, module, inp, out):
         self.activations = out.detach()
@@ -118,19 +130,25 @@ class GradCAM:
 
     def generate(self, img_tensor, class_idx):
         self.model.eval()
-        img_tensor = img_tensor.requires_grad_(True)
+        img_tensor = img_tensor.clone().requires_grad_(True)
         output = self.model(img_tensor)
         self.model.zero_grad()
         one_hot = torch.zeros_like(output)
         one_hot[0][class_idx] = 1
-        output.backward(gradient=one_hot)
+        output.backward(gradient=one_hot, retain_graph=True)
 
-        weights     = self.gradients.mean(dim=[2, 3], keepdim=True)
-        cam         = (weights * self.activations).sum(dim=1, keepdim=True)
-        cam         = F.relu(cam)
-        cam         = F.interpolate(cam, size=(224, 224), mode='bilinear', align_corners=False)
-        cam         = cam.squeeze().cpu().numpy()
-        cam         = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
+        # Global average pool gradients → weights
+        weights = self.gradients.mean(dim=[2, 3], keepdim=True)   # (1, C, 1, 1)
+        cam     = (weights * self.activations).sum(dim=1, keepdim=True)  # (1,1,H,W)
+        cam     = F.relu(cam)
+
+        # Normalize per-sample so small activations don't vanish
+        cam_min = cam.min()
+        cam_max = cam.max()
+        cam     = (cam - cam_min) / (cam_max - cam_min + 1e-8)
+
+        cam = F.interpolate(cam, size=(224, 224), mode='bilinear', align_corners=False)
+        cam = cam.squeeze().cpu().numpy()
         return cam
 
     def remove_hooks(self):
@@ -184,31 +202,31 @@ def predict_single(model, device, image: Image.Image):
     img_rgb    = image.convert("RGB")
     img_tensor = TRANSFORM(img_rgb).unsqueeze(0).to(device)
 
-    # Grad-CAM requires grad
-    model.train()          # needed so hooks fire properly
-    gcam       = GradCAM(model)
     model.eval()
+    gcam = GradCAM(model)
 
+    # Run forward + backward with gradients enabled
     with torch.enable_grad():
-        outputs = model(img_tensor)
-        probs   = F.softmax(outputs, dim=1)
+        img_tensor = img_tensor.requires_grad_(True)
+        outputs    = model(img_tensor)
+        probs      = F.softmax(outputs, dim=1)
         conf, predicted = torch.max(probs, 1)
+        class_idx  = predicted.item()
 
-    class_idx  = predicted.item()
-    cam_map    = gcam.generate(img_tensor, class_idx)
+    cam_map = gcam.generate(img_tensor, class_idx)
     gcam.remove_hooks()
 
     overlay, heatmap = apply_colormap_on_image(img_rgb, cam_map)
 
     return {
-        "prediction":    ["Normal", "Parkinson's Disease"][class_idx],
-        "confidence":    float(conf.item() * 100),
-        "normal_prob":   float(probs[0][0].item() * 100),
-        "parkinson_prob":float(probs[0][1].item() * 100),
-        "cam_overlay":   overlay,
-        "cam_heatmap":   heatmap,
-        "timestamp":     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "image":         img_rgb,
+        "prediction":     ["Normal", "Parkinson's Disease"][class_idx],
+        "confidence":     float(conf.item() * 100),
+        "normal_prob":    float(probs[0][0].item() * 100),
+        "parkinson_prob": float(probs[0][1].item() * 100),
+        "cam_overlay":    overlay,
+        "cam_heatmap":    heatmap,
+        "timestamp":      datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "image":          img_rgb,
     }
 
 
