@@ -106,20 +106,19 @@ class GradCAM:
         self.activations = None
         self._hooks      = []
 
-        # Target layer4 inside the ResNetBackbone Sequential
-        # features[-1] is layer4 (the last block before avgpool/fc)
-        # We hook the last Bottleneck block inside layer4
-        target_layer = None
-        for name, module in model.backbone.features.named_children():
-            target_layer = module   # keeps updating → ends at layer4
-        # target_layer is now layer4; hook its last Bottleneck
-        last_bottleneck = list(target_layer.children())[-1]
+        # ResNet50 backbone.features = [conv1, bn1, relu, maxpool,
+        #                                layer1, layer2, layer3, layer4]
+        # features[-1] = layer4 (Sequential of Bottleneck blocks)
+        # Hook conv3 of the LAST Bottleneck — gives 7x7 x 2048 maps
+        layer4      = model.backbone.features[-1]
+        last_block  = list(layer4.children())[-1]   # last Bottleneck
+        target      = last_block.conv3               # 1x1 conv, output=2048ch
 
         self._hooks.append(
-            last_bottleneck.register_forward_hook(self._save_activation)
+            target.register_forward_hook(self._save_activation)
         )
         self._hooks.append(
-            last_bottleneck.register_full_backward_hook(self._save_gradient)
+            target.register_full_backward_hook(self._save_gradient)
         )
 
     def _save_activation(self, module, inp, out):
@@ -129,26 +128,35 @@ class GradCAM:
         self.gradients = grad_out[0].detach()
 
     def generate(self, img_tensor, class_idx):
-        self.model.eval()
         img_tensor = img_tensor.clone().requires_grad_(True)
-        output = self.model(img_tensor)
-        self.model.zero_grad()
-        one_hot = torch.zeros_like(output)
-        one_hot[0][class_idx] = 1
-        output.backward(gradient=one_hot, retain_graph=True)
 
-        # Global average pool gradients → weights
-        weights = self.gradients.mean(dim=[2, 3], keepdim=True)   # (1, C, 1, 1)
-        cam     = (weights * self.activations).sum(dim=1, keepdim=True)  # (1,1,H,W)
+        with torch.enable_grad():
+            output = self.model(img_tensor)
+            self.model.zero_grad()
+            # Backprop the raw class score (not softmax) for sharper grads
+            output[0, class_idx].backward(retain_graph=True)
+
+        if self.gradients is None or self.activations is None:
+            return np.zeros((224, 224))
+
+        # ReLU-weighted channel importance (only positive gradients)
+        weights = F.relu(self.gradients).mean(dim=[2, 3], keepdim=True)
+        cam     = (weights * self.activations).sum(dim=1, keepdim=True)
         cam     = F.relu(cam)
 
-        # Normalize per-sample so small activations don't vanish
-        cam_min = cam.min()
-        cam_max = cam.max()
-        cam     = (cam - cam_min) / (cam_max - cam_min + 1e-8)
-
-        cam = F.interpolate(cam, size=(224, 224), mode='bilinear', align_corners=False)
+        # Bicubic upsample → sharper edges than bilinear
+        cam = F.interpolate(cam, size=(224, 224), mode='bicubic', align_corners=False)
         cam = cam.squeeze().cpu().numpy()
+
+        # Normalize
+        c_min, c_max = cam.min(), cam.max()
+        if c_max - c_min > 1e-8:
+            cam = (cam - c_min) / (c_max - c_min)
+        else:
+            return np.zeros((224, 224))
+
+        # Raise to power to suppress diffuse background, sharpen hotspot
+        cam = np.power(cam, 1.8)
         return cam
 
     def remove_hooks(self):
@@ -203,17 +211,17 @@ def predict_single(model, device, image: Image.Image):
     img_tensor = TRANSFORM(img_rgb).unsqueeze(0).to(device)
 
     model.eval()
-    gcam = GradCAM(model)
 
-    # Run forward + backward with gradients enabled
-    with torch.enable_grad():
-        img_tensor = img_tensor.requires_grad_(True)
-        outputs    = model(img_tensor)
-        probs      = F.softmax(outputs, dim=1)
+    # Step 1: Get prediction (no grad needed)
+    with torch.no_grad():
+        outputs = model(img_tensor)
+        probs   = F.softmax(outputs, dim=1)
         conf, predicted = torch.max(probs, 1)
-        class_idx  = predicted.item()
+        class_idx = predicted.item()
 
-    cam_map = gcam.generate(img_tensor, class_idx)
+    # Step 2: GradCAM — fresh forward+backward with grad enabled
+    gcam    = GradCAM(model)
+    cam_map = gcam.generate(img_tensor.clone(), class_idx)
     gcam.remove_hooks()
 
     overlay, heatmap = apply_colormap_on_image(img_rgb, cam_map)
