@@ -17,7 +17,6 @@ import torchvision.models as models
 import base64
 import os
 import gdown
-import cv2
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import pandas as pd
