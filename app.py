@@ -22,8 +22,8 @@ import matplotlib.cm as cm
 import pandas as pd
 
 # ── GOOGLE DRIVE CONFIG ───────────────────────────────────────────────────────
-GDRIVE_FILE_ID = "1EGsFZQMs2LCvRW637WQo0p0I0Qz6r_kC"
-MODEL_PATH = "new_vit.pth"
+GDRIVE_FILE_ID = "1p2uIwGMGI06iPyuHYeqUAw2EtBN53vvq"
+MODEL_PATH = "new_ntau.pth"
 
 def download_model():
     if not os.path.exists(MODEL_PATH):
