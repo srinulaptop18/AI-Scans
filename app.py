@@ -27,8 +27,8 @@ import pandas as pd
 # ══════════════════════════════════════════════════════════════════════════════
 #  CONFIG
 # ══════════════════════════════════════════════════════════════════════════════
-GDRIVE_FILE_ID = "1cQyv6NibS3Kjzu1BWHBFZvB6ZzMJm6xA"
-MODEL_PATH     = "kaggle_parkinsons_vit.pth"
+GDRIVE_FILE_ID = "1p2uIwGMGI06iPyuHYeqUAw2EtBN53vvq"
+MODEL_PATH     = "new_ntau.pth"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1237,54 +1237,67 @@ with tab_about:
 
     st.markdown('<div class="sec-head" style="margin-top:2rem;">👨‍🏫 Project Guidance</div>', unsafe_allow_html=True)
 
-    g1, g2, g3 = st.columns([2, 1, 1])
-    with g1:
-        st.markdown(
-            '<div class="about-card" style="border-color:rgba(59,130,246,.35);">'
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:.65rem;color:#3b82f6;'
-            'letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem;">⭐ Project Guide</div>'
-            '<div style="font-size:2.4rem;margin-bottom:.5rem;">👨‍🏫</div>'
-            '<div style="font-family:Space Grotesk,sans-serif;font-size:1.1rem;font-weight:700;'
-            'color:#e2eaf4;margin-bottom:.6rem;">Ms. N P U V S N Pavan Kumar, M.Tech</div>'
-            '<div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;">'
-            '<span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);'
-            'border-radius:50px;padding:.18rem .7rem;font-size:.75rem;color:#93c5fd;">Assistant Professor</span>'
-            '<span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);'
-            'border-radius:50px;padding:.18rem .7rem;font-size:.75rem;color:#93c5fd;">Dept. of ECE</span>'
-            '<span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);'
-            'border-radius:50px;padding:.18rem .7rem;font-size:.75rem;color:#93c5fd;">Deputy CoE – III</span>'
-            '</div></div>',
-            unsafe_allow_html=True,
-        )
-    with g2:
-        st.markdown(
-            '<div class="about-card">'
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:.65rem;color:#2dd4bf;'
-            'letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem;">📋 Coordinator</div>'
-            '<div style="font-size:2rem;margin-bottom:.5rem;">📋</div>'
-            '<div style="font-family:Space Grotesk,sans-serif;font-size:.95rem;font-weight:600;'
-            'color:#e2eaf4;margin-bottom:.5rem;">Mr. K Anji Babu, M.Tech</div>'
-            '<span style="background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);'
-            'border-radius:50px;padding:.18rem .7rem;font-size:.75rem;color:#5eead4;">Asst. Prof · ECE</span>'
-            '</div>',
-            unsafe_allow_html=True,
-        )
-    with g3:
-        st.markdown(
-            '<div class="about-card">'
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:.65rem;color:#fbbf24;'
-            'letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem;">👨‍💼 HOD</div>'
-            '<div style="font-size:2rem;margin-bottom:.5rem;">👨‍💼</div>'
-            '<div style="font-family:Space Grotesk,sans-serif;font-size:.95rem;font-weight:600;'
-            'color:#e2eaf4;margin-bottom:.5rem;">Dr. S A Vara Prasad, Ph.D</div>'
-            '<div style="display:flex;flex-direction:column;gap:.3rem;align-items:center;">'
-            '<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);'
-            'border-radius:50px;padding:.18rem .7rem;font-size:.75rem;color:#fcd34d;">Professor & HOD · ECE</span>'
-            '<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);'
-            'border-radius:50px;padding:.18rem .7rem;font-size:.75rem;color:#fcd34d;">Chairman BoS</span>'
-            '</div></div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown(
+        '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.8rem 2rem;">'
+
+        # inner flex row — 3 equal columns separated by dividers
+        '<div style="display:flex;gap:0;align-items:stretch;">'
+
+        # ── Guide ──
+        '<div style="flex:1;text-align:center;padding:.6rem 1.6rem;">'
+        '<div style="font-family:IBM Plex Mono,monospace;font-size:.62rem;color:#3b82f6;'
+        'letter-spacing:2px;text-transform:uppercase;margin-bottom:.7rem;">⭐ Project Guide</div>'
+        '<div style="font-size:2rem;margin-bottom:.45rem;">👨‍🏫</div>'
+        '<div style="font-family:Space Grotesk,sans-serif;font-size:.95rem;font-weight:700;'
+        'color:#e2eaf4;margin-bottom:.55rem;">Ms. N P U V S N Pavan Kumar, M.Tech</div>'
+        '<div style="display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;">'
+        '<span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#93c5fd;">Assistant Professor</span>'
+        '<span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#93c5fd;">Dept. of ECE</span>'
+        '<span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#93c5fd;">Deputy CoE – III</span>'
+        '</div></div>'
+
+        # divider
+        '<div style="width:1px;background:var(--border);margin:.2rem 0;flex-shrink:0;"></div>'
+
+        # ── Coordinator ──
+        '<div style="flex:1;text-align:center;padding:.6rem 1.6rem;">'
+        '<div style="font-family:IBM Plex Mono,monospace;font-size:.62rem;color:#2dd4bf;'
+        'letter-spacing:2px;text-transform:uppercase;margin-bottom:.7rem;">📋 Project Coordinator</div>'
+        '<div style="font-size:2rem;margin-bottom:.45rem;">📋</div>'
+        '<div style="font-family:Space Grotesk,sans-serif;font-size:.95rem;font-weight:700;'
+        'color:#e2eaf4;margin-bottom:.55rem;">Mr. K Anji Babu, M.Tech</div>'
+        '<div style="display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;">'
+        '<span style="background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#5eead4;">Assistant Professor</span>'
+        '<span style="background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#5eead4;">Dept. of ECE</span>'
+        '</div></div>'
+
+        # divider
+        '<div style="width:1px;background:var(--border);margin:.2rem 0;flex-shrink:0;"></div>'
+
+        # ── HOD ──
+        '<div style="flex:1;text-align:center;padding:.6rem 1.6rem;">'
+        '<div style="font-family:IBM Plex Mono,monospace;font-size:.62rem;color:#fbbf24;'
+        'letter-spacing:2px;text-transform:uppercase;margin-bottom:.7rem;">👨‍💼 Head of Department</div>'
+        '<div style="font-size:2rem;margin-bottom:.45rem;">👨‍💼</div>'
+        '<div style="font-family:Space Grotesk,sans-serif;font-size:.95rem;font-weight:700;'
+        'color:#e2eaf4;margin-bottom:.55rem;">Dr. S A Vara Prasad, Ph.D, M.Tech</div>'
+        '<div style="display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;">'
+        '<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#fcd34d;">Professor &amp; HOD · ECE</span>'
+        '<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#fcd34d;">Chairman BoS</span>'
+        '<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);'
+        'border-radius:50px;padding:.15rem .65rem;font-size:.72rem;color:#fcd34d;">Anti-Ragging Committee</span>'
+        '</div></div>'
+
+        '</div></div>',  # close flex row + outer panel
+        unsafe_allow_html=True,
+    )
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
