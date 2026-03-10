@@ -27,8 +27,8 @@ import pandas as pd
 # ══════════════════════════════════════════════════════════════════════════════
 #  CONFIG
 # ══════════════════════════════════════════════════════════════════════════════
-GDRIVE_FILE_ID = "1p2uIwGMGI06iPyuHYeqUAw2EtBN53vvq"
-MODEL_PATH     = "new_ntau.pth"
+GDRIVE_FILE_ID = "1cQyv6NibS3Kjzu1BWHBFZvB6ZzMJm6xA"
+MODEL_PATH     = "kaggle_parkinsons_vit.pth"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
